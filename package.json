@@ -20,7 +20,6 @@
   },
   "homepage": "https://github.com/GenusAS/version-util#readme",
   "dependencies": {
-    "commander": "^2.10.0",
     "request": "^2.81.0"
   },
   "devDependencies": {

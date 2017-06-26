@@ -1,50 +1,67 @@
-#!/usr/bin/env node
 const request = require('request')
-const program = require('commander')
-const fs      = require('fs')
 
 
-const getVersionNumber = require('./functions/versionService').getVersionNumber
-const checkBranch      = require('./functions/versionService').checkBranch
+const versionServiceUrl = 'http://gitlab.genus.net:3000/'
 
+const getBranches = () => new Promise((resolve, reject) => {
+    
+    let url = versionServiceUrl + 'repos/24/branches'
 
-program
-    .version('0.0.1')
-    .option('-b, --branch [branch]', 'Git branch')
-    .option('-d, --destination [path]', 'Destination')
+    request(url, (error, response, body) => {
 
+        let branches = JSON.parse(body).map(branch => branch.name)
 
-program
-    .command('get')
-    .description('Gets the version number')
-    .action(function(cmd, options) {
-        console.log("Gets the version number")
-
-        let branch = program.branch || process.env.CI_COMMIT_REF_NAME
-
-        checkBranch(branch)
-            .then(getVersionNumber)
-            .then(function(version){
-            
-                if (program.destination) {
-                    fs.writeFile(program.destination, version, function(err){
-                        if (err){
-                            throw err
-                        }
-                        console.log("Versionnumber saved in " + program.destination )
-                    })
-                } else {
-
-                    console.log(version)
-                }
-            })
-            .catch(function(err) {
-                console.error("ERROR: " + err)
-            })
+        resolve(branches)
     })
 
+})
+
+/**
+ * Takes a branch name and checks that towards the result of getBranches. If it is among the branches, the promise resolves,
+ * if not, it rejects
+ * 
+ */
+exports.checkBranch = (branch) => new Promise((resolve, reject) => {
+
+    getBranches()
+        .then(function(validBranches) {
+
+            if (validBranches.some(item => item === branch)) {
+                console.log(branch + " exists")
+                resolve(branch)
+            } else {
+                reject("Branch " + branch + " does not exist")
+                return
+            }
+        })
+})
 
 
-program.parse(process.argv)
+/** 
+ * Will call the version service to require about the latest version number of a given branch.
+ * @param {*} branch 
+ */
+exports.getVersionNumber = (branch) => new Promise((resolve, reject) => {
+    console.log("Getting version number from version service")
 
-module.exports = getVersionNumber
+    
+    let url = versionServiceUrl + 'builder/24/?branch=' + branch
+    
+
+    request(url,  (error, response, body) => {
+        if (error) {
+            console.log('ERROR')
+            reject()
+            throw new Error(error)
+        }
+        const result = JSON.parse(body)
+        
+        if (result.err) {
+            reject()
+            throw new Error(result.err)
+        }
+
+        resolve(result.version)
+    })
+
+})
