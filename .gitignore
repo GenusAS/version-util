@@ -2,4 +2,4 @@
 **/bundle/*
 npm-debug.log
 debugConf.js
-!.vscode
+.vscode/*
