@@ -1,6 +1,6 @@
 {
   "name": "version-util",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Util for interacting with the version service on GitLab",
   "main": "index.js",
   "scripts": {
