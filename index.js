@@ -16,7 +16,7 @@ const getBranches = (repoId) =>
 /**
  * Resolves with an array of all repos from the gitlab server. 
  */
-exports.getRepos = () => {
+exports.getRepos = () =>
 	new Promise((resolve, reject) => {
 		let url = versionServiceUrl + "repos"
 		console.log("Getting repos...")
@@ -31,7 +31,7 @@ exports.getRepos = () => {
 			}
 		})
 	})
-}
+
 
 /**
  * Takes a branch name and checks that towards the result of getBranches. If it is among the branches, the promise resolves,
