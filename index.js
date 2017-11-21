@@ -2,9 +2,9 @@ const request = require('request')
 
 const versionServiceUrl = 'http://ci-lnxbuilder.genus.biz:3000/'
 
-const getBranches = () =>
+const getBranches = (repoId) =>
 	new Promise((resolve, reject) => {
-		let url = versionServiceUrl + 'repos/24/branches'
+		let url = versionServiceUrl + 'repos/' + repoId + '/branches'
 
 		request(url, (error, response, body) => {
 			let branches = JSON.parse(body).map(branch => branch.name)
@@ -14,16 +14,38 @@ const getBranches = () =>
 	})
 
 /**
+ * Resolves with an array of all repos from the gitlab server. 
+ */
+exports.getRepos = () => {
+	new Promise((resolve, reject) => {
+		let url = versionServiceUrl + "repos"
+		console.log("Getting repos...")
+		request(url, (error, response, body) => {
+			let repos = JSON.parse(body)
+
+			if (repos) {
+				resolve(repos)
+			}
+			else {
+				reject("No repos")
+			}
+		})
+	})
+}
+
+/**
  * Takes a branch name and checks that towards the result of getBranches. If it is among the branches, the promise resolves,
  * if not, it rejects
  * 
  */
-exports.checkBranch = branch =>
+exports.checkBranch = (repoId, branch) =>
+
 	new Promise((resolve, reject) => {
-		getBranches().then(function(validBranches) {
+		getBranches(repoId).then(function (validBranches) {
+
 			if (validBranches.some(item => item === branch)) {
 				console.log(branch + ' exists')
-				resolve(branch)
+				resolve(repoId, branch)
 			} else {
 				reject('Branch ' + branch + ' does not exist')
 				return
@@ -35,11 +57,11 @@ exports.checkBranch = branch =>
  * Will call the version service to require about the latest version number of a given branch.
  * @param {*} branch 
  */
-exports.getVersionNumber = branch =>
+exports.getVersionNumber = (repoId, branch) =>
 	new Promise((resolve, reject) => {
-		console.log('Getting version number from version service')
+		console.log('Getting version number from version service for repo ' + repoId)
 
-		let url = versionServiceUrl + 'builder/24/?branch=' + branch
+		let url = versionServiceUrl + 'builder/' + repoId + '/?branch=' + branch
 
 		request(url, (error, response, body) => {
 			if (error) {
