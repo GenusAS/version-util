@@ -25,7 +25,7 @@ const checkRepo = (repoId, repos) =>
 /**
  * Resolves with an array of all repos from the gitlab server. 
  */
-exports.getRepos = () =>
+const getRepos = () =>
 	new Promise((resolve, reject) => {
 		let url = versionServiceUrl + "repos"
 		console.log("Getting repos...")
@@ -47,7 +47,7 @@ exports.getRepos = () =>
  * if not, it rejects
  * 
  */
-exports.checkBranch = (repoId, branch) =>
+const checkBranch = (repoId, branch) =>
 
 	new Promise((resolve, reject) => {
 		getRepos()
@@ -72,7 +72,7 @@ exports.checkBranch = (repoId, branch) =>
  * Will call the version service to require about the latest version number of a given branch.
  * @param {*} branch 
  */
-exports.getVersionNumber = (repoId, branch) =>
+const getVersionNumber = (repoId, branch) =>
 	new Promise((resolve, reject) => {
 		console.log('Getting version number from version service for repo ' + repoId)
 
@@ -94,3 +94,7 @@ exports.getVersionNumber = (repoId, branch) =>
 			resolve(result.version)
 		})
 	})
+
+exports.getRepos = getRepos
+exports.checkBranch = checkBranch
+exports.getVersionNumber = getVersionNumber
