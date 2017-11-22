@@ -2,35 +2,70 @@ const request = require('request')
 
 const versionServiceUrl = 'http://ci-lnxbuilder.genus.biz:3000/'
 
+/**
+ * Returns a promise that resolves 
+ * @param {*} repoId 
+ */
 const getBranches = (repoId) =>
 	new Promise((resolve, reject) => {
-		let url = versionServiceUrl + 'repos/' + repoId + '/branches'
+		const url = versionServiceUrl + 'repos/' + repoId + '/branches'
 
 		request(url, (error, response, body) => {
-			let branches = JSON.parse(body).map(branch => branch.name)
+			if (error) {
+				console.log('ERROR')
+				reject()
+				throw new Error(error)
+			}
+			const result = JSON.parse(body)
+
+			if (result.err) {
+				reject()
+				throw new Error(result.err)
+			}
+
+			const branches = JSON.parse(body).map(branch => branch.name)
 
 			resolve(branches)
 		})
 	})
 
+/**
+ * Returns a promise that resolved with the provided repoId if it is valid, or an error string if it is not found. 
+ * @param {*} repoId 
+ * @param {*} repos 
+ */
 const checkRepo = (repoId, repos) =>
 	new Promise((resolve, reject) => {
-		if (repos.some(repo => repo.id === repoId)) {
-			console.log("Repo with repoId " + repoId + " exists: " + repo.name)
+		if (repos.some(repo => repo.id == repoId)) {
+			console.log("Repo with repoId " + repoId + " exists")
 			resolve(repoId)
 		} else {
 			reject("Invalid repo id")
 		}
 	})
+
+
 /**
- * Resolves with an array of all repos from the gitlab server. 
+ * Returns a promise that resolves with an array of all repos from the gitlab server. 
  */
 const getRepos = () =>
 	new Promise((resolve, reject) => {
-		let url = versionServiceUrl + "repos"
+		const url = versionServiceUrl + "repos"
 		console.log("Getting repos...")
 		request(url, (error, response, body) => {
-			let repos = JSON.parse(body)
+			if (error) {
+				console.log('ERROR')
+				reject()
+				throw new Error(error)
+			}
+			const result = JSON.parse(body)
+
+			if (result.err) {
+				reject()
+				throw new Error(result.err)
+			}
+
+			const repos = JSON.parse(body)
 
 			if (repos) {
 				resolve(repos)
@@ -43,9 +78,9 @@ const getRepos = () =>
 
 
 /**
- * Takes a branch name and checks that towards the result of getBranches. If it is among the branches, the promise resolves,
- * if not, it rejects
- * 
+ * Takes a branch name and checks that towards the result of getBranches. If it is among the branches, the promise resolves, if not, it rejects
+ * @param {*} repoId 
+ * @param {*} branch 
  */
 const checkBranch = (repoId, branch) =>
 
@@ -76,7 +111,7 @@ const getVersionNumber = (repoId, branch) =>
 	new Promise((resolve, reject) => {
 		console.log('Getting version number from version service for repo ' + repoId)
 
-		let url = versionServiceUrl + 'builder/' + repoId + '/?branch=' + branch
+		const url = versionServiceUrl + 'builder/' + repoId + '/?branch=' + branch
 
 		request(url, (error, response, body) => {
 			if (error) {
@@ -94,6 +129,7 @@ const getVersionNumber = (repoId, branch) =>
 			resolve(result.version)
 		})
 	})
+
 
 exports.getRepos = getRepos
 exports.checkBranch = checkBranch
