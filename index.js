@@ -13,6 +13,15 @@ const getBranches = (repoId) =>
 		})
 	})
 
+const checkRepo = (repoId, repos) =>
+	new Promise((resolve, reject) => {
+		if (repos.some(repo => repo.id === repoId)) {
+			console.log("Repo with repoId " + repoId + " exists: " + repo.name)
+			resolve(repoId)
+		} else {
+			reject("Invalid repo id")
+		}
+	})
 /**
  * Resolves with an array of all repos from the gitlab server. 
  */
@@ -41,16 +50,22 @@ exports.getRepos = () =>
 exports.checkBranch = (repoId, branch) =>
 
 	new Promise((resolve, reject) => {
-		getBranches(repoId).then(function (validBranches) {
+		getRepos()
+			.then(checkRepo.bind(null, repoId))
+			.then(getBranches)
+			.then((validBranches) => {
 
-			if (validBranches.some(item => item === branch)) {
-				console.log(branch + ' exists')
-				resolve(repoId, branch)
-			} else {
-				reject('Branch ' + branch + ' does not exist')
-				return
-			}
-		})
+				if (validBranches.some(item => item === branch)) {
+					console.log(branch + ' exists')
+					resolve(repoId, branch)
+				} else {
+					reject('Branch ' + branch + ' does not exist')
+					return
+				}
+			})
+			.catch(function (err) {
+				console.error("ERROR: " + err)
+			})
 	})
 
 /** 
