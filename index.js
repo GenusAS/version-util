@@ -2,32 +2,6 @@ const request = require('request')
 
 const versionServiceUrl = 'http://ci-lnxbuilder.genus.biz:3000/'
 
-/**
- * Returns a promise that resolves 
- * @param {*} repoId 
- */
-const getBranches = (repoId) =>
-	new Promise((resolve, reject) => {
-		const url = versionServiceUrl + 'repos/' + repoId + '/branches'
-
-		request(url, (error, response, body) => {
-			if (error) {
-				console.log('ERROR')
-				reject()
-				throw new Error(error)
-			}
-			const result = JSON.parse(body)
-
-			if (result.err) {
-				reject()
-				throw new Error(result.err)
-			}
-
-			const branches = JSON.parse(body).map(branch => branch.name)
-
-			resolve(branches)
-		})
-	})
 
 /**
  * Returns a promise that resolved with the provided repoId if it is valid, or an error string if it is not found. 
@@ -55,14 +29,14 @@ const getRepos = () =>
 		request(url, (error, response, body) => {
 			if (error) {
 				console.log('ERROR')
-				reject()
-				throw new Error(error)
+				reject(error)
+				return
 			}
 			const result = JSON.parse(body)
 
 			if (result.err) {
-				reject()
-				throw new Error(result.err)
+				reject(error)
+				return
 			}
 
 			const repos = JSON.parse(body)
@@ -73,6 +47,33 @@ const getRepos = () =>
 			else {
 				reject("No repos")
 			}
+		})
+	})
+
+/**
+ * Returns a promise that resolves with an array of branches in the given repo
+ * @param {*} repoId 
+ */
+const getBranches = (repoId) =>
+	new Promise((resolve, reject) => {
+		const url = versionServiceUrl + 'repos/' + repoId + '/branches'
+
+		request(url, (error, response, body) => {
+			if (error) {
+				console.log('ERROR')
+				reject(error)
+				return
+			}
+			const result = JSON.parse(body)
+
+			if (result.err) {
+				reject(error)
+				return
+			}
+
+			const branches = JSON.parse(body).map(branch => branch.name)
+
+			resolve(branches)
 		})
 	})
 
@@ -105,7 +106,8 @@ const checkBranch = (repoId, branch) =>
 
 /** 
  * Will call the version service to require about the latest version number of a given branch.
- * @param {*} branch 
+ * @param {*} reopId 
+ * @param {*} branch  
  */
 const getVersionNumber = (repoId, branch) =>
 	new Promise((resolve, reject) => {
@@ -116,21 +118,52 @@ const getVersionNumber = (repoId, branch) =>
 		request(url, (error, response, body) => {
 			if (error) {
 				console.log('ERROR')
-				reject()
-				throw new Error(error)
+				reject(error)
+				return
 			}
 			const result = JSON.parse(body)
 
 			if (result.err) {
-				reject()
-				throw new Error(result.err)
+				reject(error)
+				return
 			}
 
 			resolve(result.version)
 		})
 	})
 
+/**
+ * Increments the version number and resolves with the new version number
+ * @param {*} reopId 
+ * @param {*} branch 
+ */
+const incrementVersionNumber = (reopId, branch) => {
+	new Promise((resolve, reject) => {
+		console.log('Getting version number from version service for repo ' + repoId)
 
+		const url = versionServiceUrl + 'builder/' + repoId + '/?branch=' + branch
+
+		request.post(url, (error, response, body) => {
+			if (error) {
+				console.log('ERROR')
+				reject(error)
+				return
+			}
+			const result = JSON.parse(body)
+
+			if (result.err) {
+				reject(error)
+				return
+			}
+
+			resolve(result.version)
+		})
+	})
+}
+
+exports.getBranches = getBranches
+exports.checkRepo = checkRepo
 exports.getRepos = getRepos
 exports.checkBranch = checkBranch
 exports.getVersionNumber = getVersionNumber
+exports.incrementVersionNumber = incrementVersionNumber
