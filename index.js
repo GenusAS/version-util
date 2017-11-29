@@ -115,7 +115,7 @@ const getVersionNumber = (input) =>
 	new Promise((resolve, reject) => {
 		const repoId = input.repoId
 		const branch = input.branch
-		console.log('Getting version number from version service for repo ' + repoId)
+		console.log('Getting version number from version service for branch  ' + branch + ' and repo ' + repoId)
 
 		const url = versionServiceUrl + 'builder/' + repoId + '/?branch=' + branch
 
@@ -140,12 +140,12 @@ const getVersionNumber = (input) =>
  * Increments the version number and resolves with the new version number
  * @param {repoId, branch} Object consisting of repoId and branch name 
  */
-const incrementVersionNumber = (input) => {
+const incrementVersionNumber = (input) =>
 	new Promise((resolve, reject) => {
 		const repoId = input.repoId
 		const branch = input.branch
 
-		console.log('Getting version number from version service for repo ' + repoId)
+		console.log('Incrementing version number from version service for branch  ' + branch + ' and repo ' + repoId)
 
 		const url = versionServiceUrl + 'builder/' + repoId + '/?branch=' + branch
 
@@ -158,6 +158,7 @@ const incrementVersionNumber = (input) => {
 			const result = JSON.parse(body)
 
 			if (result.err) {
+				console.log('ERROR')
 				reject(error)
 				return
 			}
@@ -165,7 +166,7 @@ const incrementVersionNumber = (input) => {
 			resolve(result.version)
 		})
 	})
-}
+
 
 exports.getBranches = getBranches
 exports.checkRepo = checkRepo
