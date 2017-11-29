@@ -93,7 +93,10 @@ const checkBranch = (repoId, branch) =>
 
 				if (validBranches.some(item => item === branch)) {
 					console.log(branch + ' exists')
-					resolve(repoId, branch)
+					resolve({
+						repoId,
+						branch
+					})
 				} else {
 					reject('Branch ' + branch + ' does not exist')
 					return
@@ -104,13 +107,14 @@ const checkBranch = (repoId, branch) =>
 			})
 	})
 
-/** 
+/**
  * Will call the version service to require about the latest version number of a given branch.
- * @param {*} reopId 
- * @param {*} branch  
+ * @param {repoId, branch} Object consisting of repoId and branch name 
  */
-const getVersionNumber = (repoId, branch) =>
+const getVersionNumber = (input) =>
 	new Promise((resolve, reject) => {
+		const repoId = input.repoId
+		const branch = input.branch
 		console.log('Getting version number from version service for repo ' + repoId)
 
 		const url = versionServiceUrl + 'builder/' + repoId + '/?branch=' + branch
@@ -134,11 +138,13 @@ const getVersionNumber = (repoId, branch) =>
 
 /**
  * Increments the version number and resolves with the new version number
- * @param {*} reopId 
- * @param {*} branch 
+ * @param {repoId, branch} Object consisting of repoId and branch name 
  */
-const incrementVersionNumber = (reopId, branch) => {
+const incrementVersionNumber = (input) => {
 	new Promise((resolve, reject) => {
+		const repoId = input.repoId
+		const branch = input.branch
+
 		console.log('Getting version number from version service for repo ' + repoId)
 
 		const url = versionServiceUrl + 'builder/' + repoId + '/?branch=' + branch
